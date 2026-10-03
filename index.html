@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f5ef">
+  <title>Cronograma del proyecto</title>
+  <link rel="stylesheet" href="styles.css?v=responsibles-modal-4">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="page-header">
+      <p class="eyebrow">Proyecto universitario <span>/</span> Planificación</p>
+      <h1 id="page-title">Cronograma</h1>
+      <p class="intro" id="page-intro">Actividades, responsables y fechas del proyecto.</p>
+    </header>
+
+    <nav class="view-tabs" role="tablist" aria-label="Secciones del proyecto">
+      <button class="view-tab is-active" id="tab-cronograma" type="button" role="tab" aria-selected="true" aria-controls="panel-cronograma" data-title="Cronograma" data-intro="Actividades, responsables y fechas del proyecto.">Cronograma</button>
+      <button class="view-tab" id="tab-calendario" type="button" role="tab" aria-selected="false" aria-controls="panel-calendario" data-title="Calendario" data-intro="Actividades organizadas por fecha." tabindex="-1">Calendario</button>
+      <button class="view-tab" id="tab-equipo" type="button" role="tab" aria-selected="false" aria-controls="panel-equipo" data-title="Equipo" data-intro="Personas y roles responsables del proyecto." tabindex="-1">Equipo</button>
+      <button class="view-tab" id="tab-estados" type="button" role="tab" aria-selected="false" aria-controls="panel-estados" data-title="Estados" data-intro="Estados de las actividades y avance general del proyecto." tabindex="-1">Estados</button>
+    </nav>
+
+    <section class="tab-panel" id="panel-cronograma" role="tabpanel" aria-labelledby="tab-cronograma">
+      <div class="section-heading activities-heading">
+        <div class="activity-summary">
+          <h2>Actividades</h2>
+          <span id="activity-count" class="activity-count" aria-live="polite">Cargando...</span>
+        </div>
+        <button class="primary-button" id="add-activity-button" type="button">+ Nueva actividad</button>
+      </div>
+      <div class="table-frame">
+        <div class="table-scroll">
+          <table>
+            <colgroup>
+              <col class="activity-column">
+              <col class="owner-column">
+              <col class="date-column">
+              <col class="days-column">
+              <col class="date-column">
+              <col class="advance-column">
+              <col class="status-column">
+              <col class="actions-column">
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">Actividad</th>
+                <th scope="col">Responsable</th>
+                <th scope="col">Fecha de inicio</th>
+                <th scope="col">N.º de días</th>
+                <th scope="col">Fecha de fin</th>
+                <th scope="col">Avance</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="activity-rows">
+              <tr>
+                <td class="table-message" colspan="8" aria-live="polite">Cargando actividades...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab-panel calendar-panel" id="panel-calendario" role="tabpanel" aria-labelledby="tab-calendario" hidden>
+      <div class="calendar-toolbar">
+        <div class="calendar-month-group">
+          <h2 id="calendar-month-title" aria-live="polite">Calendario</h2>
+          <span id="calendar-activity-count" class="activity-count"></span>
+        </div>
+        <div class="calendar-controls" aria-label="Navegación del calendario">
+          <button class="calendar-nav-button" id="calendar-previous" type="button" aria-label="Mes anterior" title="Mes anterior">‹</button>
+          <button class="secondary-button calendar-today-button" id="calendar-today" type="button">Hoy</button>
+          <button class="calendar-nav-button" id="calendar-next" type="button" aria-label="Mes siguiente" title="Mes siguiente">›</button>
+        </div>
+      </div>
+      <div class="calendar-viewport">
+        <div class="calendar-grid" role="grid" aria-labelledby="calendar-month-title">
+          <div class="calendar-weekday" role="columnheader">Lun</div>
+          <div class="calendar-weekday" role="columnheader">Mar</div>
+          <div class="calendar-weekday" role="columnheader">Mié</div>
+          <div class="calendar-weekday" role="columnheader">Jue</div>
+          <div class="calendar-weekday" role="columnheader">Vie</div>
+          <div class="calendar-weekday" role="columnheader">Sáb</div>
+          <div class="calendar-weekday" role="columnheader">Dom</div>
+          <div class="calendar-days" id="calendar-days" role="rowgroup" aria-live="polite"></div>
+        </div>
+      </div>
+      <p class="calendar-legend"><span class="calendar-legend-dot" aria-hidden="true"></span> Actividad programada</p>
+    </section>
+
+    <section class="tab-panel team-panel" id="panel-equipo" role="tabpanel" aria-labelledby="tab-equipo" hidden>
+      <div class="section-heading team-heading">
+        <div>
+          <h2>Equipo del proyecto</h2>
+          <p class="section-description">Integrantes y responsabilidades.</p>
+        </div>
+        <div class="team-actions">
+          <span id="team-count" class="activity-count" aria-live="polite">Cargando...</span>
+          <button class="primary-button" id="add-member-button" type="button">+ Agregar integrante</button>
+        </div>
+      </div>
+      <p class="team-notice" id="team-notice" role="status" hidden></p>
+      <div class="team-grid" id="team-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="tab-panel states-panel" id="panel-estados" role="tabpanel" aria-labelledby="tab-estados" hidden>
+      <div class="section-heading states-heading">
+        <div>
+          <h2>Avance del proyecto</h2>
+          <p class="section-description">Promedio del avance registrado en las actividades del cronograma.</p>
+        </div>
+        <form class="state-form" id="state-form">
+          <label class="visually-hidden" for="new-state-name">Nombre del nuevo estado</label>
+          <input id="new-state-name" name="nombre" maxlength="80" placeholder="Nombre del estado" required>
+          <button class="primary-button" id="save-state" type="submit">+ Agregar estado</button>
+        </form>
+      </div>
+      <p class="form-feedback state-feedback" id="state-feedback" role="alert" hidden></p>
+
+      <div class="project-metrics" aria-label="Resumen del proyecto">
+        <section class="project-metric project-progress-metric">
+          <span class="metric-label">Avance general</span>
+          <strong id="project-progress">—</strong>
+          <span class="project-progress-track"><span id="project-progress-bar"></span></span>
+        </section>
+        <section class="project-metric">
+          <span class="metric-label">Actividades contabilizadas</span>
+          <strong id="tracked-activity-count">—</strong>
+          <span class="metric-detail">Actividades con seguimiento</span>
+        </section>
+        <section class="project-metric">
+          <span class="metric-label">Estados disponibles</span>
+          <strong id="available-state-count">—</strong>
+          <span class="metric-detail">Registrados o usados</span>
+        </section>
+      </div>
+
+      <div class="section-heading state-stats-heading">
+        <h2>Actividades por estado</h2>
+        <span id="state-summary-count" class="activity-count" aria-live="polite">Cargando...</span>
+      </div>
+      <div class="table-frame">
+        <div class="table-scroll">
+          <table class="state-stats-table">
+            <thead>
+              <tr>
+                <th scope="col">Estado</th>
+                <th scope="col">Actividades</th>
+                <th scope="col">Porcentaje</th>
+                <th scope="col">Distribución</th>
+              </tr>
+            </thead>
+            <tbody id="state-rows">
+              <tr><td class="table-message" colspan="4" aria-live="polite">Cargando estados...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="member-dialog" id="member-dialog" aria-labelledby="member-dialog-title">
+    <form id="member-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Equipo del proyecto</p>
+          <h2 id="member-dialog-title">Nuevo integrante</h2>
+        </div>
+        <button class="icon-button" id="close-member-dialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <label class="form-field">Nombre completo
+        <input name="nombre" autocomplete="name" maxlength="100" required>
+      </label>
+      <label class="form-field">Rol en el proyecto
+        <input name="rol" maxlength="100" placeholder="Ej. Responsable técnico" required>
+      </label>
+      <div class="field-row">
+        <label class="form-field">Correo electrónico
+          <input name="correo" type="email" autocomplete="email" maxlength="160">
+        </label>
+        <label class="form-field">Teléfono
+          <input name="telefono" type="tel" autocomplete="tel" maxlength="40">
+        </label>
+      </div>
+      <p class="form-feedback" id="form-feedback" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-member" type="button">Cancelar</button>
+        <button class="primary-button" id="save-member" type="submit">Guardar integrante</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="member-dialog assignment-dialog" id="assignment-dialog" aria-labelledby="assignment-dialog-title">
+    <form id="assignment-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Equipo del proyecto</p>
+          <h2 id="assignment-dialog-title">Responsables de actividad</h2>
+        </div>
+        <button class="icon-button" id="close-assignment-dialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <p class="assignment-activity" id="assignment-activity-name"></p>
+      <p class="assignment-legacy" id="assignment-legacy" hidden></p>
+      <fieldset class="form-field assignee-field">
+        <legend>Personas responsables</legend>
+        <div class="assignee-options" id="responsible-options"></div>
+      </fieldset>
+      <p class="form-hint">Marca o desmarca las personas asignadas a esta actividad.</p>
+      <p class="form-feedback" id="assignment-feedback" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-assignment" type="button">Cancelar</button>
+        <button class="primary-button" id="save-assignment" type="submit">Guardar responsables</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="member-dialog delete-dialog" id="delete-member-dialog" aria-labelledby="delete-member-title">
+    <form id="delete-member-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Equipo del proyecto</p>
+          <h2 id="delete-member-title">Eliminar integrante</h2>
+        </div>
+        <button class="icon-button" id="close-delete-member-dialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <p class="delete-description">¿Eliminar <strong id="delete-member-name"></strong> del equipo?</p>
+      <p class="delete-impact" id="delete-member-impact"></p>
+      <p class="form-feedback" id="delete-member-feedback" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-delete-member" type="button">Cancelar</button>
+        <button class="danger-button" id="confirm-delete-member" type="submit">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="member-dialog activity-dialog" id="activity-dialog" aria-labelledby="activity-dialog-title">
+    <form id="activity-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Cronograma</p>
+          <h2 id="activity-dialog-title">Nueva actividad</h2>
+        </div>
+        <button class="icon-button" id="close-activity-dialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="activity-form-grid">
+        <label class="form-field activity-field-wide">Actividad
+          <input name="actividad" maxlength="200" required>
+        </label>
+        <label class="form-field activity-field-wide">Responsable
+          <input name="responsable" maxlength="200">
+        </label>
+        <fieldset class="form-field activity-field-wide assignee-field">
+          <legend>Responsables del equipo</legend>
+          <div class="assignee-options" id="activity-responsible-options"></div>
+        </fieldset>
+        <label class="form-field">Fecha de inicio
+          <input name="fecha_inicio" type="date">
+        </label>
+        <label class="form-field">Días
+          <input name="dias" type="number" min="1" step="1" readonly>
+        </label>
+        <label class="form-field">Fecha de fin
+          <input name="fecha_fin" type="date">
+        </label>
+        <label class="form-field">Avance (0 a 1)
+          <input name="avance" type="number" min="0" max="1" step="0.01">
+        </label>
+        <label class="form-field activity-field-wide">Estado
+          <select name="estado" id="activity-state-select">
+            <option value="">Sin estado</option>
+          </select>
+        </label>
+      </div>
+      <p class="form-hint">Los días se calculan entre las fechas de inicio y fin, contando ambos días. El avance se guarda como decimal: 0.5 equivale al 50%.</p>
+      <p class="form-feedback" id="activity-feedback" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-activity" type="button">Cancelar</button>
+        <button class="primary-button" id="save-activity" type="submit">Guardar actividad</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="member-dialog delete-dialog" id="delete-activity-dialog" aria-labelledby="delete-activity-title">
+    <form id="delete-activity-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Cronograma</p>
+          <h2 id="delete-activity-title">Eliminar actividad</h2>
+        </div>
+        <button class="icon-button" id="close-delete-dialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <p class="delete-description">¿Eliminar <strong id="delete-activity-name"></strong> del cronograma?</p>
+      <p class="form-feedback" id="delete-feedback" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-delete" type="button">Cancelar</button>
+        <button class="danger-button" id="confirm-delete" type="submit">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

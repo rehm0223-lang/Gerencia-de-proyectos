@@ -1,0 +1,184 @@
+{
+    "actividades": [
+    {
+        "actividad": "FASE 1",
+        "responsable": "CARTAGENA",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": null,
+        "fecha_fin": null,
+        "avance": null,
+        "estado": null
+    },
+    {
+        "actividad": "Diagnóstico del proceso actual de mantenimiento",
+        "responsable": "Analista de Requerimientos / Rafael Hernandez",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": "2026-09-16",
+        "dias": 4,
+        "fecha_fin": "2026-09-19",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Identificación de fallas críticas de la flota",
+        "responsable": "Responsable Técnico / Santiago Marrugo",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 4,
+        "fecha_fin": "2026-09-19",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Revisión de registros históricos de mantenimiento y fallas",
+        "responsable": "Responsable de Documentación y Comunicaciones / Samuel Blanco",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 4,
+        "fecha_fin": "2026-09-19",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Definición de variables de monitoreo",
+        "responsable": "Responsable Técnico / Santiago Marrugo",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 6,
+        "fecha_fin": "2026-09-27",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Selección del 15-20% de la flota para el piloto",
+        "responsable": "Analista de Requerimientos / Rafael Hernandez",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 4,
+        "fecha_fin": "2026-09-25",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Elaboración y aprobación del Acta de Constitución",
+        "responsable": "Gerente de Proyecto / Rubén Marrugo",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 4,
+        "fecha_fin": "2026-09-25",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Diseño del módulo de alertas predictivas",
+        "responsable": "Responsable Técnico / Santiago Marrugo",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 10,
+        "fecha_fin": "2026-10-09",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Definición de criterios de calidad y gestión de riesgos",
+        "responsable": "Responsable de Calidad y Riesgos / Jhoiner Lambraño",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 8,
+        "fecha_fin": "2026-10-07",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Documentación técnica y funcional del sistema",
+        "responsable": "Responsable de Documentación y Comunicaciones / Samuel Blanco",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 8,
+        "fecha_fin": "2026-10-07",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Implementación y prueba del piloto en vehículos seleccionados",
+        "responsable": "Responsable Técnico / Santiago Marrugo",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 10,
+        "fecha_fin": "2026-10-23",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Ajustes, validación y colchón de contingencia",
+        "responsable": "Responsable de Calidad y Riesgos / Jhoiner Lambraño",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": 20,
+        "fecha_fin": "2026-11-16",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    },
+    {
+        "actividad": "Entrega final del proyecto",
+        "responsable": "Gerente de Proyecto / Rubén Marrugo",
+        "responsableId": null,
+        "responsablesIds": null,
+        "fecha_inicio": null,
+        "dias": null,
+        "fecha_fin": "2026-11-16",
+        "avance": 0.0,
+        "estado": "Sin Empezar"
+    }
+    ],
+    "equipo": {
+        "-P31opv_K78aQGWRExDv": {
+            "correo": "",
+            "nombre": "Rafael Hernandez",
+            "rol": "Analista de requerimientos",
+            "telefono": ""
+        },
+        "-P31ouFg5VpEqs4V2IuN": {
+            "correo": "",
+            "nombre": "Ruben marrugo",
+            "rol": "Gerente de proyecto",
+            "telefono": ""
+        },
+        "-P31oyt2eAvEni2WISoD": {
+            "correo": "",
+            "nombre": "Jhonnier lambraño",
+            "rol": "Responsable de calidad",
+            "telefono": ""
+        },
+        "-P31p0gWFsvmfPKPuxqg": {
+            "correo": "",
+            "nombre": "Santiago marrugo",
+            "rol": "Responsable tecnico",
+            "telefono": ""
+        },
+        "-P31p4OGV_srnuaUpUf-": {
+            "correo": "",
+            "nombre": "Samuel Blanco",
+            "rol": "Documentacion",
+            "telefono": ""
+        }
+    },
+    "estados": {
+        "sin-empezar": {
+            "nombre": "Sin Empezar"
+        }
+    }
+}
