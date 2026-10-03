@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4f5ef">
   <title>Cronograma del proyecto</title>
-  <link rel="stylesheet" href="styles.css?v=responsibles-modal-4">
+  <link rel="stylesheet" href="styles.css?v=status-colors-5">
 </head>
 <body>
   <main class="page-shell">
@@ -89,7 +89,13 @@
           <div class="calendar-days" id="calendar-days" role="rowgroup" aria-live="polite"></div>
         </div>
       </div>
-      <p class="calendar-legend"><span class="calendar-legend-dot" aria-hidden="true"></span> Actividad programada</p>
+      <ul class="calendar-legend" aria-label="Leyenda de estados">
+        <li><span class="calendar-legend-dot status-complete" aria-hidden="true"></span> Completadas</li>
+        <li><span class="calendar-legend-dot status-overdue" aria-hidden="true"></span> Atrasadas</li>
+        <li><span class="calendar-legend-dot status-active" aria-hidden="true"></span> En proceso</li>
+        <li><span class="calendar-legend-dot status-neutral" aria-hidden="true"></span> Sin estado</li>
+        <li><span class="calendar-legend-dot status-pending" aria-hidden="true"></span> Sin empezar</li>
+      </ul>
     </section>
 
     <section class="tab-panel team-panel" id="panel-equipo" role="tabpanel" aria-labelledby="tab-equipo" hidden>
@@ -111,7 +117,7 @@
       <div class="section-heading states-heading">
         <div>
           <h2>Avance del proyecto</h2>
-          <p class="section-description">Promedio del avance registrado en las actividades del cronograma.</p>
+          <p class="section-description">Cada actividad completada cuenta como 100%; las demás usan su avance registrado.</p>
         </div>
         <form class="state-form" id="state-form">
           <label class="visually-hidden" for="new-state-name">Nombre del nuevo estado</label>
@@ -149,13 +155,14 @@
             <thead>
               <tr>
                 <th scope="col">Estado</th>
+                <th scope="col">Color</th>
                 <th scope="col">Actividades</th>
                 <th scope="col">Porcentaje</th>
                 <th scope="col">Distribución</th>
               </tr>
             </thead>
             <tbody id="state-rows">
-              <tr><td class="table-message" colspan="4" aria-live="polite">Cargando estados...</td></tr>
+              <tr><td class="table-message" colspan="5" aria-live="polite">Cargando estados...</td></tr>
             </tbody>
           </table>
         </div>

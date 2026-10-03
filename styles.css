@@ -210,8 +210,8 @@ h1 {
   border: 0;
   border-left: 3px solid currentColor;
   border-radius: 2px;
-  background: #edf0ed;
-  color: var(--muted);
+  background: color-mix(in srgb, var(--status-color, #727b76) 13%, white);
+  color: var(--status-color, #727b76);
   cursor: pointer;
   font: inherit;
   font-size: 10px;
@@ -221,9 +221,6 @@ h1 {
   white-space: nowrap;
 }
 
-.calendar-event.status-pending { background: var(--warm-soft); color: var(--warm); }
-.calendar-event.status-active { background: var(--blue-soft); color: var(--blue); }
-.calendar-event.status-complete { background: var(--accent-soft); color: var(--accent); }
 .calendar-event.starts-today { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
 .calendar-event.ends-today { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
 .calendar-event:hover { filter: brightness(0.97); }
@@ -231,14 +228,18 @@ h1 {
 
 .calendar-legend {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
+  gap: 8px 18px;
+  padding: 0;
   margin: 12px 0 0;
   color: var(--muted);
   font-size: 11px;
+  list-style: none;
 }
 
-.calendar-legend-dot { width: 8px; aspect-ratio: 1; border-radius: 50%; background: var(--accent); }
+.calendar-legend li { display: inline-flex; align-items: center; gap: 7px; }
+.calendar-legend-dot { width: 9px; aspect-ratio: 1; border-radius: 50%; background: var(--status-color, #727b76); }
 
 .section-heading {
   display: flex;
@@ -337,17 +338,43 @@ h1 {
 .state-distribution-fill { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
 
 .state-stats-heading { margin-top: 34px; }
-.state-stats-table { min-width: 640px; }
-.state-stats-table th:first-child { width: 42%; }
+.state-stats-table { min-width: 720px; }
+.state-stats-table th:first-child { width: 34%; }
 .state-stats-table th:nth-child(2),
 .state-stats-table td:nth-child(2),
 .state-stats-table th:nth-child(3),
-.state-stats-table td:nth-child(3) { width: 17%; text-align: right; }
+.state-stats-table td:nth-child(3) { width: 15%; text-align: right; }
+.state-stats-table th:nth-child(4),
+.state-stats-table td:nth-child(4) { width: 12%; text-align: center; }
 .state-stats-table th:last-child { width: 24%; }
 .state-stats-table td { height: 52px; }
 .state-count-cell,
 .state-percent-cell { font-variant-numeric: tabular-nums; }
 .state-distribution-track { width: 100%; min-width: 90px; height: 7px; }
+
+.state-color-control {
+  display: inline-grid;
+  width: 36px;
+  height: 32px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.state-color-control input {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.state-color-control input:disabled { cursor: not-allowed; }
+.state-color-swatch { display: inline-block; width: 18px; aspect-ratio: 1; border: 1px solid rgb(0 0 0 / 14%); border-radius: 50%; }
 
 .team-heading { align-items: center; }
 
@@ -787,16 +814,19 @@ td:nth-child(6) { text-align: center; }
   max-width: 100%;
   padding: 4px 8px;
   border-radius: 3px;
+  background: color-mix(in srgb, var(--status-color, #727b76) 13%, white);
+  color: var(--status-color, #727b76);
   font-size: 11px;
   font-weight: 600;
   line-height: 1.25;
   white-space: nowrap;
 }
 
-.status-pending { background: var(--warm-soft); color: var(--warm); }
-.status-active { background: var(--blue-soft); color: var(--blue); }
-.status-complete { background: var(--accent-soft); color: var(--accent); }
-.status-neutral { background: #edf0ed; color: var(--muted); }
+.status-pending { --status-color: #ef8f00; }
+.status-overdue { --status-color: #c0392b; }
+.status-active { --status-color: #1976d2; }
+.status-complete { --status-color: #2e7d32; }
+.status-neutral { --status-color: #727b76; }
 
 @media (max-width: 900px) {
   main.page-shell {

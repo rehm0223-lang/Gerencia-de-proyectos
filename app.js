@@ -72,6 +72,7 @@ let editingMemberId = null;
 let deletingMemberId = null;
 let statusManagementAvailable = false;
 let currentStatuses = [];
+let currentStatusRecords = [];
 let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 const calendarMonthFormatter = new Intl.DateTimeFormat("es-CO", {
   month: "long",
@@ -132,10 +133,11 @@ function updateActivityDuration(clearIncomplete = false) {
 }
 
 function statusClass(value) {
-  const normalizedStatus = String(value ?? "").toLocaleLowerCase("es");
-  if (normalizedStatus.includes("sin empezar")) return "status-pending";
-  if (normalizedStatus.includes("progreso")) return "status-active";
-  if (normalizedStatus.includes("complet")) return "status-complete";
+  const status = normalizedStatus(value);
+  if (status.includes("atras")) return "status-overdue";
+  if (status.includes("complet") || status.includes("finaliz") || status.includes("terminad")) return "status-complete";
+  if (status.includes("progreso") || status.includes("proceso") || status.includes("curso")) return "status-active";
+  if (status.includes("sin empezar") || status.includes("pendiente")) return "status-pending";
   return "status-neutral";
 }
 
@@ -234,7 +236,8 @@ function toStatusRecords(statuses) {
   return entries
     .map(([id, status]) => ({
       id,
-      nombre: typeof status === "string" ? status : status?.nombre
+      nombre: typeof status === "string" ? status : status?.nombre,
+      color: typeof status === "object" ? status?.color : null
     }))
     .filter((status) => typeof status.nombre === "string" && status.nombre.trim());
 }
@@ -261,6 +264,34 @@ function normalizedStatus(value) {
   return String(value ?? "").trim().toLocaleLowerCase("es");
 }
 
+function defaultStatusColor(value) {
+  const status = normalizedStatus(value);
+  if (!status || status === "sin estado") return "#727b76";
+  if (status.includes("atras")) return "#c0392b";
+  if (status.includes("complet") || status.includes("finaliz") || status.includes("terminad")) return "#2e7d32";
+  if (status.includes("progreso") || status.includes("proceso") || status.includes("curso")) return "#1976d2";
+  if (status.includes("sin empezar") || status.includes("pendiente")) return "#ef8f00";
+  return "#727b76";
+}
+
+function colorForStatus(value) {
+  const record = currentStatusRecords.find((status) => normalizedStatus(status.nombre) === normalizedStatus(value));
+  return /^#[0-9a-f]{6}$/i.test(record?.color ?? "") ? record.color : defaultStatusColor(value);
+}
+
+function applyStatusColor(element, value) {
+  element.style.setProperty("--status-color", colorForStatus(value));
+}
+
+function activityProgress(data) {
+  const status = normalizedStatus(data?.estado);
+  const isCompleted = /(^|\s)(completad[oa]s?|finalizad[oa]s?|terminad[oa]s?|hech[oa]s?|done)(\s|$)/.test(status);
+  if (isCompleted) return 1;
+
+  const progress = Number(data?.avance);
+  return Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
+}
+
 function populateActivityStateSelect(selectedStatus = "") {
   activityStateSelect.replaceChildren();
   const emptyOption = document.createElement("option");
@@ -283,6 +314,8 @@ function populateActivityStateSelect(selectedStatus = "") {
 
 function renderStates(statuses) {
   const statusRecords = toStatusRecords(statuses);
+  currentStatusRecords = statusRecords;
+  renderCalendar();
   const namesByKey = new Map();
   statusRecords.forEach(({ nombre }) => namesByKey.set(normalizedStatus(nombre), nombre.trim()));
   trackedActivities().forEach(({ data }) => {
@@ -302,10 +335,7 @@ function renderStates(statuses) {
   const activities = trackedActivities();
   const averageAdvance = activities.length === 0
     ? 0
-    : activities.reduce((total, { data }) => {
-      const value = Number(data.avance);
-      return total + (Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0);
-    }, 0) / activities.length;
+    : activities.reduce((total, { data }) => total + activityProgress(data), 0) / activities.length;
   projectProgress.textContent = formatAdvance(averageAdvance);
   projectProgressBar.style.width = `${Math.min(100, Math.max(0, averageAdvance * 100))}%`;
   trackedActivityCount.textContent = String(activities.length);
@@ -331,7 +361,7 @@ function renderStates(statuses) {
   if (summary.length === 0) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
-    cell.colSpan = 4;
+    cell.colSpan = 5;
     cell.className = "table-message";
     cell.textContent = "Aún no hay estados ni actividades con seguimiento.";
     row.append(cell);
@@ -345,7 +375,31 @@ function renderStates(statuses) {
     const badge = document.createElement("span");
     badge.className = `status-badge ${statusClass(name)}`;
     badge.textContent = name;
+    applyStatusColor(badge, name);
     stateCell.append(badge);
+
+    const colorCell = document.createElement("td");
+    const statusRecord = statusRecords.find((record) => normalizedStatus(record.nombre) === normalizedStatus(name));
+    if (statusRecord) {
+      const colorControl = document.createElement("label");
+      colorControl.className = "state-color-control";
+      const colorInput = document.createElement("input");
+      colorInput.type = "color";
+      colorInput.value = /^#[0-9a-f]{6}$/i.test(statusRecord.color ?? "")
+        ? statusRecord.color
+        : defaultStatusColor(name);
+      colorInput.disabled = !statusManagementAvailable;
+      colorInput.dataset.statusId = statusRecord.id;
+      colorInput.setAttribute("aria-label", `Color para el estado ${name}`);
+      colorControl.append(colorInput);
+      colorCell.append(colorControl);
+    } else {
+      const swatch = document.createElement("span");
+      swatch.className = "state-color-swatch";
+      swatch.style.backgroundColor = colorForStatus(name);
+      swatch.setAttribute("aria-label", `Color predeterminado de ${name}`);
+      colorCell.append(swatch);
+    }
 
     const countCell = document.createElement("td");
     countCell.className = "state-count-cell";
@@ -364,7 +418,7 @@ function renderStates(statuses) {
     fill.style.width = `${Math.min(100, percentage)}%`;
     track.append(fill);
     distributionCell.append(track);
-    row.append(stateCell, countCell, percentageCell, distributionCell);
+    row.append(stateCell, colorCell, countCell, percentageCell, distributionCell);
     return row;
   });
   stateRows.replaceChildren(...rows);
@@ -568,6 +622,7 @@ function renderActivities(activities) {
         const badge = document.createElement("span");
         badge.className = `status-badge ${statusClass(activity?.estado)}`;
         badge.textContent = value;
+        applyStatusColor(badge, activity?.estado);
         cell.append(badge);
       } else if (index === 7) {
         const actions = document.createElement("div");
@@ -671,6 +726,7 @@ function renderCalendar() {
     (eventsByDay.get(key) ?? []).forEach(({ id, data: activity, firstDate: originalStart, lastDate: originalEnd }) => {
       const eventButton = document.createElement("button");
       eventButton.className = `calendar-event ${statusClass(activity.estado)}`;
+      applyStatusColor(eventButton, activity.estado);
       eventButton.type = "button";
       const startLabel = activity.fecha_inicio ? displayDate(activity.fecha_inicio) : "Inicio sin definir";
       const endLabel = activity.fecha_fin ? displayDate(activity.fecha_fin) : "Fin sin definir";
@@ -828,6 +884,58 @@ stateForm.addEventListener("submit", async (event) => {
   } finally {
     saveStateButton.disabled = !statusManagementAvailable;
     saveStateButton.textContent = "+ Agregar estado";
+  }
+});
+
+stateRows.addEventListener("change", async (event) => {
+  const colorInput = event.target.closest('input[type="color"][data-status-id]');
+  if (!colorInput || !statusManagementAvailable) return;
+
+  const statusId = colorInput.dataset.statusId;
+  const selectedColor = colorInput.value;
+  colorInput.disabled = true;
+  stateFeedback.hidden = true;
+  try {
+    const response = await fetch(`${databaseUrl}/estados/${encodeURIComponent(statusId)}.json`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ color: selectedColor })
+    });
+    if (!response.ok) throw new Error(`Firebase respondió con estado ${response.status}.`);
+    await loadProjectData();
+  } catch (error) {
+    console.error("No se pudo guardar el color del estado:", error);
+    stateFeedback.textContent = "No se pudo guardar el color. Verifica las reglas de escritura de Firebase.";
+    stateFeedback.hidden = false;
+    colorInput.disabled = false;
+  }
+});
+
+stateRows.addEventListener("change", async (event) => {
+  const colorInput = event.target.closest('input[type="color"][data-status-id]');
+  if (!colorInput || !statusManagementAvailable) return;
+
+  const statusId = colorInput.dataset.statusId;
+  const previousColor = currentStatusRecords.find((record) => record.id === statusId)?.color;
+  const selectedColor = colorInput.value;
+  colorInput.disabled = true;
+  stateFeedback.hidden = true;
+  try {
+    const response = await fetch(`${databaseUrl}/estados/${encodeURIComponent(statusId)}.json`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ color: selectedColor })
+    });
+    if (!response.ok) throw new Error(`Firebase respondió con estado ${response.status}.`);
+    await loadProjectData();
+  } catch (error) {
+    console.error("No se pudo guardar el color del estado:", error);
+    stateFeedback.textContent = "No se pudo guardar el color. Verifica las reglas de escritura de Firebase.";
+    stateFeedback.hidden = false;
+    colorInput.value = /^#[0-9a-f]{6}$/i.test(previousColor ?? "")
+      ? previousColor
+      : defaultStatusColor(colorInput.closest("tr")?.querySelector(".status-badge")?.textContent);
+    colorInput.disabled = false;
   }
 });
 
