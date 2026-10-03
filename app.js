@@ -1,3 +1,9 @@
+const evidenceActivityDialog = document.querySelector("#evidence-activity-dialog");
+const evidenceActivityForm = document.querySelector("#evidence-activity-form");
+const evidenceActivityLabel = document.querySelector("#evidence-activity-label");
+const evidenceActivityOptions = document.querySelector("#evidence-activity-options");
+const evidenceActivityFeedback = document.querySelector("#evidence-activity-feedback");
+const saveEvidenceActivityButton = document.querySelector("#save-evidence-activity");
 const activityRows = document.querySelector("#activity-rows");
 const activityCount = document.querySelector("#activity-count");
 const calendarDays = document.querySelector("#calendar-days");
@@ -78,6 +84,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-CO", {
   dateStyle: "medium",
   timeZone: "UTC"
 });
+let linkingEvidenceId = null;
 let teamNodeAvailable = false;
 let activityCrudAvailable = false;
 let currentActivities = [];
@@ -272,7 +279,8 @@ function toEvidenceRecords(evidences) {
     .map(([id, evidence]) => ({
       id,
       numero: Number(evidence.numero),
-      enlace: String(evidence.enlace ?? "")
+      enlace: String(evidence.enlace ?? ""),
+      actividadId: typeof evidence.actividadId === "string" && evidence.actividadId ? evidence.actividadId : null
     }))
     .filter((evidence) => Number.isInteger(evidence.numero) && evidence.numero > 0);
 }
@@ -304,7 +312,7 @@ function renderEvidences(evidences) {
   if (currentEvidences.length === 0) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
-    cell.colSpan = 3;
+    cell.colSpan = 4;
     cell.className = "table-message";
     cell.textContent = "Aún no hay evidencias registradas.";
     row.append(cell);
@@ -336,6 +344,22 @@ function renderEvidences(evidences) {
       linkCell.textContent = displayValue(evidence.enlace);
     }
 
+    const activityCell = document.createElement("td");
+    activityCell.dataset.label = "Actividad";
+    const linkedActivity = currentActivities.find((record) => record.id === evidence.actividadId);
+    const activityButton = document.createElement("button");
+    activityButton.className = "responsibles-button";
+    activityButton.type = "button";
+    activityButton.textContent = linkedActivity
+      ? displayValue(linkedActivity.data.actividad)
+      : evidence.actividadId ? "Actividad eliminada" : "Asociar actividad";
+    activityButton.title = linkedActivity
+      ? `${linkedActivity.data.actividad} · Cambiar actividad`
+      : "Asociar esta evidencia a una actividad";
+    activityButton.disabled = !evidenceManagementAvailable || currentActivities.length === 0;
+    activityButton.addEventListener("click", () => openEvidenceActivityDialog(evidence));
+    activityCell.append(activityButton);
+
     const actionsCell = document.createElement("td");
     actionsCell.dataset.label = "Acciones";
     actionsCell.className = "evidence-row-actions-cell";
@@ -355,7 +379,9 @@ function renderEvidences(evidences) {
     deleteButton.addEventListener("click", () => openDeleteEvidenceDialog(evidence));
     actions.append(editButton, deleteButton);
     actionsCell.append(actions);
-    row.append(numberCell, linkCell, actionsCell);
+
+    
+    row.append(numberCell, linkCell, activityCell,actionsCell);
     return row;
   });
   evidenceRows.replaceChildren(...rows);
@@ -936,6 +962,45 @@ function openDeleteEvidenceDialog(evidence) {
   deleteEvidenceDialog.showModal();
 }
 
+function renderEvidenceActivityOptions(selectedId) {
+  evidenceActivityOptions.replaceChildren();
+  const sortedActivities = [...currentActivities].sort((left, right) =>
+    String(left.data.fecha_inicio ?? "9999").localeCompare(String(right.data.fecha_inicio ?? "9999")));
+  const options = [
+    { id: "", label: "Sin actividad" },
+    ...sortedActivities.map(({ id, data }) => ({
+      id,
+      label: `${displayValue(data.actividad)} (${displayDate(data.fecha_inicio)} – ${displayDate(data.fecha_fin)})`
+    }))
+  ];
+
+  options.forEach(({ id, label }, index) => {
+    const option = document.createElement("label");
+    option.className = "assignee-option";
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "actividadId";
+    radio.value = id;
+    radio.id = `evidence-activity-${index}`;
+    radio.checked = (selectedId ?? "") === id;
+    const text = document.createElement("span");
+    text.textContent = label;
+    option.htmlFor = radio.id;
+    option.append(radio, text);
+    evidenceActivityOptions.append(option);
+  });
+}
+
+function openEvidenceActivityDialog(evidence) {
+  if (!evidenceManagementAvailable || currentActivities.length === 0) return;
+  linkingEvidenceId = evidence.id;
+  evidenceActivityLabel.textContent = `Evidencia N.º ${evidence.numero}: ${evidence.enlace}`;
+  evidenceActivityFeedback.hidden = true;
+  renderEvidenceActivityOptions(evidence.actividadId);
+  evidenceActivityDialog.showModal();
+  evidenceActivityOptions.querySelector("input:checked")?.focus();
+}
+
 function activateTab(tab) {
   document.querySelectorAll('[role="tab"]').forEach((item) => {
     const selected = item === tab;
@@ -1001,6 +1066,38 @@ document.querySelector("#cancel-evidence").addEventListener("click", () => {
 document.querySelector("#close-delete-evidence").addEventListener("click", () => deleteEvidenceDialog.close());
 document.querySelector("#cancel-delete-evidence").addEventListener("click", () => deleteEvidenceDialog.close());
 
+
+
+document.querySelector("#close-evidence-activity").addEventListener("click", () => evidenceActivityDialog.close());
+document.querySelector("#cancel-evidence-activity").addEventListener("click", () => evidenceActivityDialog.close());
+
+evidenceActivityForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!evidenceManagementAvailable || linkingEvidenceId === null) return;
+
+  const actividadId = String(new FormData(evidenceActivityForm).get("actividadId") ?? "") || null;
+  saveEvidenceActivityButton.disabled = true;
+  saveEvidenceActivityButton.textContent = "Guardando...";
+  evidenceActivityFeedback.hidden = true;
+  try {
+    const response = await fetch(`${evidencesUrl}/${encodeURIComponent(linkingEvidenceId)}.json`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actividadId })
+    });
+    if (!response.ok) throw new Error(`Firebase respondió con estado ${response.status}.`);
+    evidenceActivityDialog.close();
+    linkingEvidenceId = null;
+    await loadProjectData();
+  } catch (error) {
+    console.error("No se pudo asociar la evidencia:", error);
+    evidenceActivityFeedback.textContent = "No se pudo guardar la actividad. Revisa las reglas de escritura de Firebase.";
+    evidenceActivityFeedback.hidden = false;
+  } finally {
+    saveEvidenceActivityButton.disabled = false;
+    saveEvidenceActivityButton.textContent = "Guardar actividad";
+  }
+});
 stateForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!statusManagementAvailable) return;

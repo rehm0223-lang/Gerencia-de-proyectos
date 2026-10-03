@@ -189,6 +189,7 @@
               <tr>
                 <th scope="col">N.º</th>
                 <th scope="col">Enlace de la evidencia</th>
+                <th scope="col">Actividad</th>
                 <th scope="col">Acciones</th>
               </tr>
             </thead>
@@ -380,6 +381,29 @@
       </div>
     </form>
   </dialog>
+
+  <dialog class="member-dialog assignment-dialog" id="evidence-activity-dialog" aria-labelledby="evidence-activity-title">
+  <form id="evidence-activity-form">
+    <div class="dialog-heading">
+      <div>
+        <p class="eyebrow">Documentación del proyecto</p>
+        <h2 id="evidence-activity-title">Actividad de la evidencia</h2>
+      </div>
+      <button class="icon-button" id="close-evidence-activity" type="button" aria-label="Cerrar">×</button>
+    </div>
+    <p class="assignment-activity" id="evidence-activity-label"></p>
+    <fieldset class="form-field assignee-field">
+      <legend>Actividad asociada</legend>
+      <div class="assignee-options" id="evidence-activity-options"></div>
+    </fieldset>
+    <p class="form-hint">Selecciona la actividad a la que pertenece esta evidencia.</p>
+    <p class="form-feedback" id="evidence-activity-feedback" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button class="secondary-button" id="cancel-evidence-activity" type="button">Cancelar</button>
+      <button class="primary-button" id="save-evidence-activity" type="submit">Guardar actividad</button>
+    </div>
+  </form>
+</dialog>
 
   <script src="app.js" defer></script>
 </body>
