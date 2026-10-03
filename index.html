@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f4f5ef">
   <title>Cronograma del proyecto</title>
-  <link rel="stylesheet" href="styles.css?v=status-colors-5">
+  <link rel="stylesheet" href="styles.css?v=evidences-crud-7">
 </head>
 <body>
   <main class="page-shell">
@@ -20,6 +20,7 @@
       <button class="view-tab" id="tab-calendario" type="button" role="tab" aria-selected="false" aria-controls="panel-calendario" data-title="Calendario" data-intro="Actividades organizadas por fecha." tabindex="-1">Calendario</button>
       <button class="view-tab" id="tab-equipo" type="button" role="tab" aria-selected="false" aria-controls="panel-equipo" data-title="Equipo" data-intro="Personas y roles responsables del proyecto." tabindex="-1">Equipo</button>
       <button class="view-tab" id="tab-estados" type="button" role="tab" aria-selected="false" aria-controls="panel-estados" data-title="Estados" data-intro="Estados de las actividades y avance general del proyecto." tabindex="-1">Estados</button>
+      <button class="view-tab" id="tab-evidencias" type="button" role="tab" aria-selected="false" aria-controls="panel-evidencias" data-title="Evidencias" data-intro="Enlaces a las evidencias del proyecto." tabindex="-1">Evidencias</button>
     </nav>
 
     <section class="tab-panel" id="panel-cronograma" role="tabpanel" aria-labelledby="tab-cronograma">
@@ -168,6 +169,36 @@
         </div>
       </div>
     </section>
+
+    <section class="tab-panel evidence-panel" id="panel-evidencias" role="tabpanel" aria-labelledby="tab-evidencias" hidden>
+      <div class="section-heading evidence-heading">
+        <div>
+          <h2>Evidencias del proyecto</h2>
+          <p class="section-description">Enlaces a documentos, entregables y archivos del proyecto.</p>
+        </div>
+        <div class="evidence-actions">
+          <span id="evidence-count" class="activity-count" aria-live="polite">Cargando...</span>
+          <button class="primary-button" id="add-evidence-button" type="button">+ Agregar evidencia</button>
+        </div>
+      </div>
+      <p class="form-feedback evidence-notice" id="evidence-notice" role="status" hidden></p>
+      <div class="table-frame">
+        <div class="table-scroll">
+          <table class="evidence-table">
+            <thead>
+              <tr>
+                <th scope="col">N.º</th>
+                <th scope="col">Enlace de la evidencia</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="evidence-rows">
+              <tr><td class="table-message" colspan="3" aria-live="polite">Cargando evidencias...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 
   <dialog class="member-dialog" id="member-dialog" aria-labelledby="member-dialog-title">
@@ -305,6 +336,47 @@
       <div class="dialog-actions">
         <button class="secondary-button" id="cancel-delete" type="button">Cancelar</button>
         <button class="danger-button" id="confirm-delete" type="submit">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="member-dialog evidence-dialog" id="evidence-dialog" aria-labelledby="evidence-dialog-title">
+    <form id="evidence-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Documentación del proyecto</p>
+          <h2 id="evidence-dialog-title">Nueva evidencia</h2>
+        </div>
+        <button class="icon-button" id="close-evidence-dialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <label class="form-field">Número
+        <input name="numero" id="evidence-number" type="number" min="1" step="1" readonly>
+      </label>
+      <label class="form-field">Enlace de la evidencia
+        <input name="enlace" id="evidence-link" type="url" maxlength="2048" placeholder="https://..." required>
+      </label>
+      <p class="form-feedback" id="evidence-feedback" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-evidence" type="button">Cancelar</button>
+        <button class="primary-button" id="save-evidence" type="submit">Guardar evidencia</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="member-dialog delete-dialog" id="delete-evidence-dialog" aria-labelledby="delete-evidence-title">
+    <form id="delete-evidence-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Documentación del proyecto</p>
+          <h2 id="delete-evidence-title">Eliminar evidencia</h2>
+        </div>
+        <button class="icon-button" id="close-delete-evidence" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <p class="delete-description">¿Eliminar la evidencia <strong id="delete-evidence-number"></strong>?</p>
+      <p class="form-feedback" id="delete-evidence-feedback" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancel-delete-evidence" type="button">Cancelar</button>
+        <button class="danger-button" id="confirm-delete-evidence" type="submit">Eliminar</button>
       </div>
     </form>
   </dialog>

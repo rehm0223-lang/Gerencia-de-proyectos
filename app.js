@@ -44,6 +44,22 @@ const deleteMemberName = document.querySelector("#delete-member-name");
 const deleteMemberImpact = document.querySelector("#delete-member-impact");
 const deleteMemberFeedback = document.querySelector("#delete-member-feedback");
 const confirmDeleteMemberButton = document.querySelector("#confirm-delete-member");
+const evidenceRows = document.querySelector("#evidence-rows");
+const evidenceCount = document.querySelector("#evidence-count");
+const evidenceNotice = document.querySelector("#evidence-notice");
+const addEvidenceButton = document.querySelector("#add-evidence-button");
+const evidenceDialog = document.querySelector("#evidence-dialog");
+const evidenceForm = document.querySelector("#evidence-form");
+const evidenceDialogTitle = document.querySelector("#evidence-dialog-title");
+const evidenceNumberInput = document.querySelector("#evidence-number");
+const evidenceLinkInput = document.querySelector("#evidence-link");
+const evidenceFeedback = document.querySelector("#evidence-feedback");
+const saveEvidenceButton = document.querySelector("#save-evidence");
+const deleteEvidenceDialog = document.querySelector("#delete-evidence-dialog");
+const deleteEvidenceForm = document.querySelector("#delete-evidence-form");
+const deleteEvidenceNumber = document.querySelector("#delete-evidence-number");
+const deleteEvidenceFeedback = document.querySelector("#delete-evidence-feedback");
+const confirmDeleteEvidenceButton = document.querySelector("#confirm-delete-evidence");
 const assignmentDialog = document.querySelector("#assignment-dialog");
 const assignmentForm = document.querySelector("#assignment-form");
 const assignmentActivityName = document.querySelector("#assignment-activity-name");
@@ -57,6 +73,7 @@ const databaseUrl = "https://rutix-d29bf-default-rtdb.firebaseio.com";
 const activitiesUrl = `${databaseUrl}/actividades`;
 const teamUrl = `${databaseUrl}/equipo.json`;
 const statesUrl = `${databaseUrl}/estados.json`;
+const evidencesUrl = `${databaseUrl}/evidencias`;
 const dateFormatter = new Intl.DateTimeFormat("es-CO", {
   dateStyle: "medium",
   timeZone: "UTC"
@@ -70,6 +87,10 @@ let editingActivityId = null;
 let deletingActivityId = null;
 let editingMemberId = null;
 let deletingMemberId = null;
+let evidenceManagementAvailable = false;
+let currentEvidences = [];
+let editingEvidenceId = null;
+let deletingEvidenceId = null;
 let statusManagementAvailable = false;
 let currentStatuses = [];
 let currentStatusRecords = [];
@@ -240,6 +261,104 @@ function toStatusRecords(statuses) {
       color: typeof status === "object" ? status?.color : null
     }))
     .filter((status) => typeof status.nombre === "string" && status.nombre.trim());
+}
+
+function toEvidenceRecords(evidences) {
+  const entries = Array.isArray(evidences)
+    ? evidences.map((evidence, index) => [String(index), evidence])
+    : Object.entries(evidences ?? {});
+  return entries
+    .filter(([, evidence]) => evidence && typeof evidence === "object")
+    .map(([id, evidence]) => ({
+      id,
+      numero: Number(evidence.numero),
+      enlace: String(evidence.enlace ?? "")
+    }))
+    .filter((evidence) => Number.isInteger(evidence.numero) && evidence.numero > 0);
+}
+
+function nextEvidenceNumber() {
+  return currentEvidences.reduce((highest, evidence) => Math.max(highest, evidence.numero), 0) + 1;
+}
+
+function safeEvidenceUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderEvidences(evidences) {
+  currentEvidences = toEvidenceRecords(evidences);
+  evidenceCount.textContent = currentEvidences.length === 1
+    ? "1 evidencia"
+    : `${currentEvidences.length} evidencias`;
+  addEvidenceButton.disabled = !evidenceManagementAvailable;
+  evidenceNotice.hidden = evidenceManagementAvailable;
+  evidenceNotice.textContent = evidenceManagementAvailable
+    ? ""
+    : "La base actual no tiene la estructura del proyecto necesaria para administrar evidencias.";
+
+  if (currentEvidences.length === 0) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 3;
+    cell.className = "table-message";
+    cell.textContent = "Aún no hay evidencias registradas.";
+    row.append(cell);
+    evidenceRows.replaceChildren(row);
+    return;
+  }
+
+  const sortedEvidences = [...currentEvidences].sort((left, right) => left.numero - right.numero);
+  const rows = sortedEvidences.map((evidence) => {
+    const row = document.createElement("tr");
+    const numberCell = document.createElement("td");
+    numberCell.dataset.label = "N.º";
+    numberCell.className = "evidence-number-cell";
+    numberCell.textContent = String(evidence.numero);
+
+    const linkCell = document.createElement("td");
+    linkCell.dataset.label = "Enlace";
+    const href = safeEvidenceUrl(evidence.enlace);
+    if (href) {
+      const link = document.createElement("a");
+      link.className = "evidence-link";
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = evidence.enlace;
+      link.title = evidence.enlace;
+      linkCell.append(link);
+    } else {
+      linkCell.textContent = displayValue(evidence.enlace);
+    }
+
+    const actionsCell = document.createElement("td");
+    actionsCell.dataset.label = "Acciones";
+    actionsCell.className = "evidence-row-actions-cell";
+    const actions = document.createElement("div");
+    actions.className = "row-actions";
+    const editButton = document.createElement("button");
+    editButton.className = "row-action";
+    editButton.type = "button";
+    editButton.textContent = "Editar";
+    editButton.disabled = !evidenceManagementAvailable;
+    editButton.addEventListener("click", () => openEvidenceDialog(evidence));
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "row-action row-action-danger";
+    deleteButton.type = "button";
+    deleteButton.textContent = "Eliminar";
+    deleteButton.disabled = !evidenceManagementAvailable;
+    deleteButton.addEventListener("click", () => openDeleteEvidenceDialog(evidence));
+    actions.append(editButton, deleteButton);
+    actionsCell.append(actions);
+    row.append(numberCell, linkCell, actionsCell);
+    return row;
+  });
+  evidenceRows.replaceChildren(...rows);
 }
 
 function trackedActivities() {
@@ -796,6 +915,27 @@ function openDeleteDialog(record) {
   deleteActivityDialog.showModal();
 }
 
+function openEvidenceDialog(evidence = null) {
+  if (!evidenceManagementAvailable) return;
+  editingEvidenceId = evidence?.id ?? null;
+  evidenceForm.reset();
+  evidenceNumberInput.value = String(evidence?.numero ?? nextEvidenceNumber());
+  evidenceLinkInput.value = evidence?.enlace ?? "";
+  evidenceDialogTitle.textContent = editingEvidenceId === null ? "Nueva evidencia" : "Editar evidencia";
+  saveEvidenceButton.textContent = editingEvidenceId === null ? "Guardar evidencia" : "Guardar cambios";
+  evidenceFeedback.hidden = true;
+  evidenceDialog.showModal();
+  evidenceLinkInput.focus();
+}
+
+function openDeleteEvidenceDialog(evidence) {
+  if (!evidenceManagementAvailable) return;
+  deletingEvidenceId = evidence.id;
+  deleteEvidenceNumber.textContent = String(evidence.numero);
+  deleteEvidenceFeedback.hidden = true;
+  deleteEvidenceDialog.showModal();
+}
+
 function activateTab(tab) {
   document.querySelectorAll('[role="tab"]').forEach((item) => {
     const selected = item === tab;
@@ -852,6 +992,14 @@ document.querySelector("#close-activity-dialog").addEventListener("click", () =>
 document.querySelector("#cancel-activity").addEventListener("click", () => activityDialog.close());
 document.querySelector("#close-delete-dialog").addEventListener("click", () => deleteActivityDialog.close());
 document.querySelector("#cancel-delete").addEventListener("click", () => deleteActivityDialog.close());
+addEvidenceButton.addEventListener("click", () => openEvidenceDialog());
+document.querySelector("#close-evidence-dialog").addEventListener("click", () => evidenceDialog.close());
+document.querySelector("#cancel-evidence").addEventListener("click", () => {
+  evidenceDialog.close();
+  editingEvidenceId = null;
+});
+document.querySelector("#close-delete-evidence").addEventListener("click", () => deleteEvidenceDialog.close());
+document.querySelector("#cancel-delete-evidence").addEventListener("click", () => deleteEvidenceDialog.close());
 
 stateForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -936,6 +1084,73 @@ stateRows.addEventListener("change", async (event) => {
       ? previousColor
       : defaultStatusColor(colorInput.closest("tr")?.querySelector(".status-badge")?.textContent);
     colorInput.disabled = false;
+  }
+});
+
+evidenceForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!evidenceManagementAvailable) return;
+
+  const isEditing = editingEvidenceId !== null;
+  const evidence = {
+    numero: Number(evidenceNumberInput.value),
+    enlace: evidenceLinkInput.value.trim()
+  };
+  if (!safeEvidenceUrl(evidence.enlace)) {
+    evidenceFeedback.textContent = "Ingresa un enlace válido que comience con http:// o https://.";
+    evidenceFeedback.hidden = false;
+    return;
+  }
+
+  saveEvidenceButton.disabled = true;
+  saveEvidenceButton.textContent = "Guardando...";
+  evidenceFeedback.hidden = true;
+  try {
+    const url = isEditing
+      ? `${evidencesUrl}/${encodeURIComponent(editingEvidenceId)}.json`
+      : `${evidencesUrl}.json`;
+    const response = await fetch(url, {
+      method: isEditing ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(evidence)
+    });
+    if (!response.ok) throw new Error(`Firebase respondió con estado ${response.status}.`);
+    evidenceDialog.close();
+    evidenceForm.reset();
+    editingEvidenceId = null;
+    await loadProjectData();
+  } catch (error) {
+    console.error("No se pudo guardar la evidencia:", error);
+    evidenceFeedback.textContent = `No se pudo ${isEditing ? "editar" : "guardar"} la evidencia. Revisa las reglas de escritura de Firebase.`;
+    evidenceFeedback.hidden = false;
+  } finally {
+    saveEvidenceButton.disabled = false;
+    saveEvidenceButton.textContent = isEditing ? "Guardar cambios" : "Guardar evidencia";
+  }
+});
+
+deleteEvidenceForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!evidenceManagementAvailable || deletingEvidenceId === null) return;
+
+  confirmDeleteEvidenceButton.disabled = true;
+  confirmDeleteEvidenceButton.textContent = "Eliminando...";
+  deleteEvidenceFeedback.hidden = true;
+  try {
+    const response = await fetch(`${evidencesUrl}/${encodeURIComponent(deletingEvidenceId)}.json`, {
+      method: "DELETE"
+    });
+    if (!response.ok) throw new Error(`Firebase respondió con estado ${response.status}.`);
+    deleteEvidenceDialog.close();
+    deletingEvidenceId = null;
+    await loadProjectData();
+  } catch (error) {
+    console.error("No se pudo eliminar la evidencia:", error);
+    deleteEvidenceFeedback.textContent = "No se pudo eliminar la evidencia. Revisa las reglas de escritura de Firebase.";
+    deleteEvidenceFeedback.hidden = false;
+  } finally {
+    confirmDeleteEvidenceButton.disabled = false;
+    confirmDeleteEvidenceButton.textContent = "Eliminar";
   }
 });
 
@@ -1141,11 +1356,13 @@ async function loadProjectData() {
     if (Array.isArray(projectData)) {
       teamNodeAvailable = false;
       activityCrudAvailable = false;
+      evidenceManagementAvailable = false;
       statusManagementAvailable = false;
       addActivityButton.disabled = true;
       renderActivities(projectData);
       renderCalendar();
       renderTeam({});
+      renderEvidences({});
       renderStates({});
       return;
     }
@@ -1156,11 +1373,13 @@ async function loadProjectData() {
     const hasProjectStructure = isActivityCollection(projectData.actividades)
       || Object.prototype.hasOwnProperty.call(projectData, "equipo");
     activityCrudAvailable = hasProjectStructure;
+    evidenceManagementAvailable = hasProjectStructure;
     teamNodeAvailable = activityCrudAvailable;
     statusManagementAvailable = hasProjectStructure;
     addActivityButton.disabled = !activityCrudAvailable;
     renderTeam(projectData.equipo);
     renderActivities(isActivityCollection(projectData.actividades) ? projectData.actividades : {});
+    renderEvidences(projectData.evidencias);
     renderCalendar();
     renderStates(projectData.estados);
   } catch (error) {
@@ -1168,6 +1387,7 @@ async function loadProjectData() {
     activityCount.textContent = "No disponible";
     teamCount.textContent = "No disponible";
     activityCrudAvailable = false;
+    evidenceManagementAvailable = false;
     teamNodeAvailable = false;
     statusManagementAvailable = false;
     addActivityButton.disabled = true;
@@ -1182,6 +1402,9 @@ async function loadProjectData() {
     saveStateButton.disabled = true;
     showMessage("No se pudieron cargar las actividades. Revisa la conexión y las reglas de lectura de Firebase.");
     teamGrid.textContent = "No se pudo cargar el equipo.";
+    evidenceCount.textContent = "No disponible";
+    evidenceRows.replaceChildren();
+    addEvidenceButton.disabled = true;
   }
 }
 
